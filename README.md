@@ -14,14 +14,16 @@ To start using go-loadbalancer, install Go and run `go get`:
     package main
 
     import (
-        "github.com/lib/pq"
+        "fmt"
         "github.com/ericmort/go-loadbalancer"
+        _ "github.com/lib/pq"
     )
 
     func main() {
-        c := Cluster{}
-        node1 := &Node{Url: "postgres://10.1.1.1:5432/mydb?sslmode=disable", Type: "postgres"}
-        node2 := &Node{Url: "postgres://10.1.1.2:5432/mydb?sslmode=disable", Type: "postgres"}
+        fmt.Println("Will run select ...")
+        c := loadbalancer.Cluster{}
+        node1 := &loadbalancer.Node{Url: "postgres://eric:eric@localhost/mydb?sslmode=disable", Type: "postgres"}
+        node2 := &loadbalancer.Node{Url: "postgres://eric:eric@localhost/mydb?sslmode=disable", Type: "postgres"}
 
         // add nodes to cluster
         c.Add(node1)
@@ -32,7 +34,7 @@ To start using go-loadbalancer, install Go and run `go get`:
 
         var result interface{}
         err = conn.QueryRow("select 1").Scan(&result)
-        fmt.Printlf("Result: %d", result)
+        fmt.Printf("Result: %d %s\n", result, err)
     }
 
 
