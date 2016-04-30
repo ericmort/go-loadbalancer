@@ -1,3 +1,6 @@
+// Copyright 2016 Eric Mortensen. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 package loadbalancer
 
 import (
@@ -5,24 +8,41 @@ import (
 	"regexp"
 )
 
+// Cluster maintains a cluster of nodes, each of which represents a host participating in load balancing.
 type Cluster struct {
-	Nodes              []*Node
-	lb                 LoadBalancer
+	// The nodes participating in this cluster
+	Nodes []*Node
+
+	lb LoadBalancer
+
+	// Maximum number of idle connections on this host
 	MaxIdleConnections int
 }
 
+// Main structure for a node participating in a cluster.
 type Node struct {
+	// The URL used to connect to this node.
 	Url     string
 	RegEx   regexp.Regexp
 	db_     *sql.DB
 	cluster *Cluster
-	Type    string
-	values  map[string]string
-	Mode    int16
+
+	// The type of node, e.g., "postgres", "mysql" etc.
+	Type   string
+	values map[string]string
+
+	// A mode indicates what type of node this is. Used by a LoadBalancer to determine which node to use
+	// For example, for MultiReaderSingleWriter load balancers, Mode can be either Read or Write.
+	Mode int16
 }
 
+// Context represents a client context when Acquire-ing connections.
 type Context struct {
-	Mode   int16
+	// The mode the client wants. Used by e.g., MultiReaderSingleWriter load balancers to choose between Read or Write nodes
+	Mode int16
+
+	// The Sql the client intends to send. Used by e.g., ParsingMultiReaderSingleWriterBalancer to parse the Sql to
+	// determine if the Sql is read-only or read-write
 	Sql    string
 	values map[string]string
 }
@@ -59,6 +79,7 @@ func (node *Node) db() (*sql.DB, error) {
 	return node.db_, nil
 }
 
+// Add adds a node to the cluster.
 func (c *Cluster) Add(node *Node) {
 	if c.Nodes == nil {
 		c.Nodes = make([]*Node, 0)
@@ -72,11 +93,14 @@ func (c *Cluster) Add(node *Node) {
 	c.lb.Add(node)
 }
 
+// SetLoadBalancer sets the load balancer strategy for this cluster
 func (c *Cluster) SetLoadBalancer(lb LoadBalancer) {
 	c.lb = lb
 	lb.SetCluster(c)
 }
 
+// Acquire acquires a new database connection from the cluster, depending on the context and the cluster's
+// load balancer strategy.
 func (c *Cluster) Acquire(context *Context) (*sql.DB, error) {
 	return c.lb.Acquire(context)
 }

@@ -1,3 +1,6 @@
+// Copyright 2016 Eric Mortensen. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 package loadbalancer
 
 import (
@@ -13,12 +16,20 @@ func init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 }
 
+// LoadBalancer represents a load balancing stragegy
 type LoadBalancer interface {
+
+	// Acquire a database connection using this load balancing strategy
 	Acquire(context *Context) (*sql.DB, error)
+
+	// Add the node to the load balancer
 	Add(node *Node)
+
+	// Set the cluster for this load balancer
 	SetCluster(c *Cluster)
 }
 
+// RandomLoadBalancer represents a uniformly random strategy of picking nodes
 type RandomLoadBalancer struct {
 	LoadBalancer
 	cluster *Cluster
