@@ -62,15 +62,15 @@ At Appstax we use stored functions a lot, which on Postgres are called from the 
 
 For example:
 
-    sql := "select /* mode: write */ myfunc_that_will_perform_updates()"
+    sql := "select /* mode: write *\/ myfunc_that_will_perform_updates()"
     c := Cluster{}
     c.Acquire(&Context{Sql: sql})
 
-Now the call to `Acquire()` will parse the statement, looking for a `/* mode: write */` hint. If it finds it, the load balancer will open a connection to the `master` and not one of the `hot standbys`
+Now the call to `Acquire()` will parse the statement, looking for a `/* mode: write *\/` hint. If it finds it, the load balancer will open a connection to the `master` and not one of the `hot standbys`
 
 
 ### Add custom load balancers
 
 ...
 */
-package go-loadbalancer
+package loadbalancer
